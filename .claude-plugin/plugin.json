@@ -1,0 +1,9 @@
+{
+  "name": "chain-command-blocker",
+  "description": "チェーンされたBashコマンドのうち、許可リスト外のコマンドが含まれる場合にユーザー確認を求めるPreToolUseフック",
+  "author": {
+    "name": "gurisugi"
+  },
+  "license": "MIT",
+  "keywords": ["hook", "security", "bash", "chain-command"]
+}
