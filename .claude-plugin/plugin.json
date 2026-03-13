@@ -1,6 +1,6 @@
 {
   "name": "chain-command-blocker",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "チェーンされたBashコマンドのうち、許可リスト外のコマンドが含まれる場合にユーザー確認を求めるPreToolUseフック",
   "author": {
     "name": "gurisugi"
