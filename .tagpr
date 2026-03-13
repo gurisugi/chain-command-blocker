@@ -1,0 +1,7 @@
+# tagpr configuration
+# https://github.com/Songmu/tagpr
+[tagpr]
+  vPrefix = true
+  release = true
+  releaseBranch = main
+	versionFile = .claude-plugin/plugin.json
