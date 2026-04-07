@@ -42,3 +42,19 @@
 ```
 
 設定ファイルが存在しない場合、許可リストは空となり、すべてのチェーンコマンドで確認が求められます。
+
+## 開発
+
+### 同梱版 shs のバージョン更新
+
+1. `bin/SHS_VERSION` を新しいバージョンに書き換える
+2. バイナリを再ダウンロードする
+3. 動作確認してコミット
+
+```bash
+echo "v0.1.0" > bin/SHS_VERSION
+make clean && make
+bash tests/test_block-chained-commands.sh
+```
+
+`Makefile` は [gurisugi/shs](https://github.com/gurisugi/shs) の GitHub Releases からプラットフォーム別のバイナリをダウンロードします。`gh` CLI が必要です。
