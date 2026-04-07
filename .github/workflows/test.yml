@@ -1,0 +1,25 @@
+name: test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install shs
+        run: |
+          SHS_VERSION=$(cat bin/SHS_VERSION)
+          gh release download "$SHS_VERSION" -R gurisugi/shs -p "shs_linux_amd64.tar.gz" -D /tmp
+          tar -xzf /tmp/shs_linux_amd64.tar.gz -C /usr/local/bin
+          chmod +x /usr/local/bin/shs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run tests
+        run: bash tests/test_block-chained-commands.sh
