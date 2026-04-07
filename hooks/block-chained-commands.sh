@@ -26,7 +26,13 @@ fi
 
 # shs のパス解決
 if [ "$USE_BUNDLED_SHS" = true ]; then
-  SHS="$CLAUDE_PLUGIN_ROOT/bin/shs"
+  SHS_OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+  SHS_ARCH=$(uname -m)
+  case "$SHS_ARCH" in
+    x86_64)  SHS_ARCH="amd64" ;;
+    aarch64) SHS_ARCH="arm64" ;;
+  esac
+  SHS="$CLAUDE_PLUGIN_ROOT/bin/shs-${SHS_OS}_${SHS_ARCH}"
 else
   SHS="shs"
 fi

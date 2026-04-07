@@ -111,7 +111,13 @@ JSON
 # CLAUDE_PLUGIN_ROOT に同梱版shs（実際のshsへのシンボリックリンク）を用意
 TMPBIN=$(mktemp -d)
 mkdir -p "$TMPBIN/bin"
-ln -s "$(command -v shs)" "$TMPBIN/bin/shs"
+TEST_SHS_OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+TEST_SHS_ARCH=$(uname -m)
+case "$TEST_SHS_ARCH" in
+  x86_64)  TEST_SHS_ARCH="amd64" ;;
+  aarch64) TEST_SHS_ARCH="arm64" ;;
+esac
+ln -s "$(command -v shs)" "$TMPBIN/bin/shs-${TEST_SHS_OS}_${TEST_SHS_ARCH}"
 
 run_test "use_bundled_shs: 同梱版shsで動作する" \
   '{"tool_input":{"command":"echo hello | jq ."}}' \
