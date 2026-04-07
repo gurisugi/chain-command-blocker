@@ -26,9 +26,9 @@ run_test() {
   local env="${4:-}"
 
   if [ -n "$env" ]; then
-    result=$(echo "$input" | env $env bash "$SCRIPT" 2>&1)
+    result=$(echo "$input" | env $env bash "$SCRIPT" 2>/dev/null)
   else
-    result=$(echo "$input" | bash "$SCRIPT" 2>&1)
+    result=$(echo "$input" | bash "$SCRIPT" 2>/dev/null)
   fi
 
   if [ -z "$result" ]; then
@@ -98,6 +98,33 @@ run_test "設定ファイルなし: jq | jq でもask" \
   '{"tool_input":{"command":"jq . file.json | jq .name"}}' \
   "ask" \
   "CHAIN_COMMAND_BLOCKER_CONFIG=/nonexistent"
+
+# use_bundled_shs のテスト
+TMPCONFIG_BUNDLED=$(mktemp)
+cat > "$TMPCONFIG_BUNDLED" <<JSON
+{
+  "allow_list": ["jq"],
+  "use_bundled_shs": true
+}
+JSON
+
+# CLAUDE_PLUGIN_ROOT に同梱版shs（実際のshsへのシンボリックリンク）を用意
+TMPBIN=$(mktemp -d)
+mkdir -p "$TMPBIN/bin"
+ln -s "$(command -v shs)" "$TMPBIN/bin/shs"
+
+run_test "use_bundled_shs: 同梱版shsで動作する" \
+  '{"tool_input":{"command":"echo hello | jq ."}}' \
+  "ask" \
+  "CHAIN_COMMAND_BLOCKER_CONFIG=$TMPCONFIG_BUNDLED CLAUDE_PLUGIN_ROOT=$TMPBIN"
+
+run_test "use_bundled_shs: 同梱版shsが見つからない場合はskip" \
+  '{"tool_input":{"command":"echo hello | jq ."}}' \
+  "allow" \
+  "CHAIN_COMMAND_BLOCKER_CONFIG=$TMPCONFIG_BUNDLED CLAUDE_PLUGIN_ROOT=/nonexistent"
+
+rm -f "$TMPCONFIG_BUNDLED"
+rm -rf "$TMPBIN"
 
 rm -f "$TMPCONFIG"
 
