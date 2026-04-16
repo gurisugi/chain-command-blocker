@@ -50,13 +50,26 @@ if [ -f "$CONFIG_FILE" ]; then
 fi
 
 # settings.json の permissions.allow を取り込む
+# ユーザー設定 / プロジェクト設定 / プロジェクトローカル設定 の3層をマージ対象とする。
+# Claude Code が「今後も許可」を記録する先は通常 .claude/settings.local.json。
 if [ "$MERGE_SETTINGS_ALLOW" = true ]; then
-  SETTINGS_FILE="${CHAIN_COMMAND_BLOCKER_SETTINGS:-$HOME/.claude/settings.json}"
-  if [ -f "$SETTINGS_FILE" ]; then
+  SETTINGS_FILES=()
+  if [ -n "${CHAIN_COMMAND_BLOCKER_SETTINGS:-}" ]; then
+    # テスト用オーバーライド: 区切りはコロン
+    IFS=':' read -ra SETTINGS_FILES <<< "$CHAIN_COMMAND_BLOCKER_SETTINGS"
+  else
+    SETTINGS_FILES+=("$HOME/.claude/settings.json")
+    PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$PWD}"
+    SETTINGS_FILES+=("$PROJECT_DIR/.claude/settings.json")
+    SETTINGS_FILES+=("$PROJECT_DIR/.claude/settings.local.json")
+  fi
+
+  for settings_file in "${SETTINGS_FILES[@]}"; do
+    [ -f "$settings_file" ] || continue
     while IFS= read -r entry; do
       [ -n "$entry" ] && ALLOW_LIST+=("$entry")
-    done < <(jq -r '.permissions.allow[]? // empty' "$SETTINGS_FILE" 2>/dev/null | parse_bash_patterns)
-  fi
+    done < <(jq -r '.permissions.allow[]? // empty' "$settings_file" 2>/dev/null | parse_bash_patterns)
+  done
 fi
 
 # shs のパス解決

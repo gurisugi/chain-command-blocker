@@ -55,7 +55,7 @@
 
 ### `settings.json` の `permissions.allow` と連携
 
-`merge_settings_allow` を有効にすると、`~/.claude/settings.json` の `permissions.allow` にある `Bash(...)` エントリを上記と同じルールで自動的にマージします：
+`merge_settings_allow` を有効にすると、Claude Code の settings ファイルにある `permissions.allow` の `Bash(...)` エントリを上記と同じルールで自動的にマージします：
 
 ```json
 {
@@ -64,9 +64,17 @@
 }
 ```
 
-`permissions.ask` / `permissions.deny` や、他レイヤーの settings（プロジェクト側 `.claude/settings.json` など）は対象外です。必要に応じて `chain-command-blocker.json` に個別エントリを追加してください。
+読み込み対象（存在するものを全て union）：
 
-設定ファイルパスは環境変数 `CHAIN_COMMAND_BLOCKER_SETTINGS` で上書きできます（テスト用途）。
+1. `~/.claude/settings.json` — ユーザー設定
+2. `$CLAUDE_PROJECT_DIR/.claude/settings.json` — プロジェクト設定（`CLAUDE_PROJECT_DIR` 未設定時は `$PWD`）
+3. `$CLAUDE_PROJECT_DIR/.claude/settings.local.json` — プロジェクトローカル設定
+
+Claude Code がセッション中に「今後も許可」で記録した承認は通常 (3) に書かれるため、この層を読むことで自動的に許可リストへ反映されます。
+
+`permissions.ask` / `permissions.deny` は対象外です。必要に応じて `chain-command-blocker.json` に個別エントリを追加してください。
+
+設定ファイルパスは環境変数 `CHAIN_COMMAND_BLOCKER_SETTINGS`（`:` 区切りで複数指定可）で上書きできます（テスト用途）。
 
 ## 開発
 
