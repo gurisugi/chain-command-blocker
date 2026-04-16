@@ -9,6 +9,26 @@ if ! command -v jq &>/dev/null; then
   exit 0
 fi
 
+# Bash(...) 形式のエントリを前方一致パターンに変換する。
+# stdin から 1 行 1 エントリを受け取り、変換後のパターンを stdout へ出す。
+# Bash(...) 以外の形式、中間ワイルドカード、空エントリはスキップする。
+parse_bash_patterns() {
+  local entry inner
+  while IFS= read -r entry; do
+    [ -z "$entry" ] && continue
+    if [[ "$entry" =~ ^Bash\((.*)\)$ ]]; then
+      inner="${BASH_REMATCH[1]}"
+      # 末尾の " *" または ":*" を除去
+      inner="${inner% \*}"
+      inner="${inner%:\*}"
+      # 中間に * が残る場合は前方一致に変換できないのでスキップ
+      [[ "$inner" == *\** ]] && continue
+      [ -z "$inner" ] && continue
+      printf '%s\n' "$inner"
+    fi
+  done
+}
+
 # 許可リストと設定の読み込み
 CONFIG_FILE="${CHAIN_COMMAND_BLOCKER_CONFIG:-$HOME/.claude/chain-command-blocker.json}"
 ALLOW_LIST=()
@@ -18,7 +38,7 @@ MERGE_SETTINGS_ALLOW=false
 if [ -f "$CONFIG_FILE" ]; then
   while IFS= read -r entry; do
     [ -n "$entry" ] && ALLOW_LIST+=("$entry")
-  done < <(jq -r '.allow_list[]' "$CONFIG_FILE" 2>/dev/null)
+  done < <(jq -r '.allow_list[]? // empty' "$CONFIG_FILE" 2>/dev/null | parse_bash_patterns)
 
   if [ "$(jq -r '.use_bundled_shs // false' "$CONFIG_FILE" 2>/dev/null)" = "true" ]; then
     USE_BUNDLED_SHS=true
@@ -34,19 +54,8 @@ if [ "$MERGE_SETTINGS_ALLOW" = true ]; then
   SETTINGS_FILE="${CHAIN_COMMAND_BLOCKER_SETTINGS:-$HOME/.claude/settings.json}"
   if [ -f "$SETTINGS_FILE" ]; then
     while IFS= read -r entry; do
-      [ -z "$entry" ] && continue
-      # Bash(...) 形式のみを対象とする
-      if [[ "$entry" =~ ^Bash\((.*)\)$ ]]; then
-        inner="${BASH_REMATCH[1]}"
-        # 末尾の " *" または ":*" を除去して前方一致パターンに変換
-        inner="${inner% \*}"
-        inner="${inner%:\*}"
-        # 中間に * が残る場合は単純な前方一致に変換できないのでスキップ
-        [[ "$inner" == *\** ]] && continue
-        [ -z "$inner" ] && continue
-        ALLOW_LIST+=("$inner")
-      fi
-    done < <(jq -r '.permissions.allow[]? // empty' "$SETTINGS_FILE" 2>/dev/null)
+      [ -n "$entry" ] && ALLOW_LIST+=("$entry")
+    done < <(jq -r '.permissions.allow[]? // empty' "$SETTINGS_FILE" 2>/dev/null | parse_bash_patterns)
   fi
 fi
 

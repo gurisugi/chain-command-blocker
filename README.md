@@ -28,41 +28,41 @@
 
 ## 許可リスト
 
-`~/.claude/chain-command-blocker.json` を作成することで、チェーンに含まれていても確認不要なコマンドをカスタマイズできます（前方一致）：
+`~/.claude/chain-command-blocker.json` を作成することで、チェーンに含まれていても確認不要なコマンドをカスタマイズできます。エントリは Claude Code の `permissions.allow` と同じ `Bash(...)` 記法で記述します：
 
 ```json
 {
   "allow_list": [
-    "jq",
-    "git log",
-    "wc",
-    "grep"
+    "Bash(jq *)",
+    "Bash(git log *)",
+    "Bash(wc *)",
+    "Bash(grep *)"
   ]
 }
 ```
 
-設定ファイルが存在しない場合、許可リストは空となり、すべてのチェーンコマンドで確認が求められます。
+記法の変換ルール（内部的には前方一致で比較されます）：
 
-### `settings.json` の `permissions.allow` と連携
-
-`merge_settings_allow` を有効にすると、`~/.claude/settings.json` の `permissions.allow` にある `Bash(...)` 形式のエントリを自動的に許可リストへマージします：
-
-```json
-{
-  "allow_list": ["jq"],
-  "merge_settings_allow": true
-}
-```
-
-変換ルール：
-
-| `settings.json` の記法 | マージされる前方一致パターン |
+| エントリ              | 前方一致パターン                 |
 |-----------------------|--------------------------------|
 | `Bash(gh pr view *)`  | `gh pr view`                   |
 | `Bash(gh search:*)`   | `gh search`                    |
 | `Bash(git log)`       | `git log`                      |
 | `Bash(sed */foo/* *)` | （中間ワイルドカードはスキップ） |
 | `WebFetch(...)` 等     | （`Bash(...)` 以外は無視）      |
+
+設定ファイルが存在しない場合、および `Bash(...)` 形式でないエントリは許可されず、すべてのチェーンコマンドで確認が求められます。
+
+### `settings.json` の `permissions.allow` と連携
+
+`merge_settings_allow` を有効にすると、`~/.claude/settings.json` の `permissions.allow` にある `Bash(...)` エントリを上記と同じルールで自動的にマージします：
+
+```json
+{
+  "allow_list": ["Bash(jq *)"],
+  "merge_settings_allow": true
+}
+```
 
 `permissions.ask` / `permissions.deny` や、他レイヤーの settings（プロジェクト側 `.claude/settings.json` など）は対象外です。必要に応じて `chain-command-blocker.json` に個別エントリを追加してください。
 
