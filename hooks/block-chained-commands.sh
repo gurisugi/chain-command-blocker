@@ -13,6 +13,7 @@ fi
 CONFIG_FILE="${CHAIN_COMMAND_BLOCKER_CONFIG:-$HOME/.claude/chain-command-blocker.json}"
 ALLOW_LIST=()
 USE_BUNDLED_SHS=false
+MERGE_SETTINGS_ALLOW=false
 
 if [ -f "$CONFIG_FILE" ]; then
   while IFS= read -r entry; do
@@ -21,6 +22,31 @@ if [ -f "$CONFIG_FILE" ]; then
 
   if [ "$(jq -r '.use_bundled_shs // false' "$CONFIG_FILE" 2>/dev/null)" = "true" ]; then
     USE_BUNDLED_SHS=true
+  fi
+
+  if [ "$(jq -r '.merge_settings_allow // false' "$CONFIG_FILE" 2>/dev/null)" = "true" ]; then
+    MERGE_SETTINGS_ALLOW=true
+  fi
+fi
+
+# settings.json の permissions.allow を取り込む
+if [ "$MERGE_SETTINGS_ALLOW" = true ]; then
+  SETTINGS_FILE="${CHAIN_COMMAND_BLOCKER_SETTINGS:-$HOME/.claude/settings.json}"
+  if [ -f "$SETTINGS_FILE" ]; then
+    while IFS= read -r entry; do
+      [ -z "$entry" ] && continue
+      # Bash(...) 形式のみを対象とする
+      if [[ "$entry" =~ ^Bash\((.*)\)$ ]]; then
+        inner="${BASH_REMATCH[1]}"
+        # 末尾の " *" または ":*" を除去して前方一致パターンに変換
+        inner="${inner% \*}"
+        inner="${inner%:\*}"
+        # 中間に * が残る場合は単純な前方一致に変換できないのでスキップ
+        [[ "$inner" == *\** ]] && continue
+        [ -z "$inner" ] && continue
+        ALLOW_LIST+=("$inner")
+      fi
+    done < <(jq -r '.permissions.allow[]? // empty' "$SETTINGS_FILE" 2>/dev/null)
   fi
 fi
 

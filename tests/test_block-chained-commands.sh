@@ -132,6 +132,82 @@ run_test "use_bundled_shs: 同梱版shsが見つからない場合はskip" \
 rm -f "$TMPCONFIG_BUNDLED"
 rm -rf "$TMPBIN"
 
+# merge_settings_allow のテスト
+TMPCONFIG_MERGE=$(mktemp)
+cat > "$TMPCONFIG_MERGE" <<'JSON'
+{
+  "allow_list": ["jq"],
+  "merge_settings_allow": true
+}
+JSON
+
+TMPSETTINGS=$(mktemp)
+cat > "$TMPSETTINGS" <<'JSON'
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh pr view *)",
+      "Bash(gh search:*)",
+      "Bash(git log)",
+      "Bash(sed */foo/bar *)",
+      "WebFetch(domain:example.com)"
+    ],
+    "ask": ["Bash(rm *)"],
+    "deny": ["Bash(find *)"]
+  }
+}
+JSON
+
+run_test "merge_settings_allow: Bash(xxx *) 形式がマージされる" \
+  '{"tool_input":{"command":"gh pr view 123 | jq ."}}' \
+  "allow" \
+  "CHAIN_COMMAND_BLOCKER_CONFIG=$TMPCONFIG_MERGE CHAIN_COMMAND_BLOCKER_SETTINGS=$TMPSETTINGS"
+
+run_test "merge_settings_allow: Bash(xxx:*) 形式がマージされる" \
+  '{"tool_input":{"command":"gh search issues foo | jq ."}}' \
+  "allow" \
+  "CHAIN_COMMAND_BLOCKER_CONFIG=$TMPCONFIG_MERGE CHAIN_COMMAND_BLOCKER_SETTINGS=$TMPSETTINGS"
+
+run_test "merge_settings_allow: ワイルドカードなしの Bash(xxx) もマージされる" \
+  '{"tool_input":{"command":"git log --oneline | jq ."}}' \
+  "allow" \
+  "CHAIN_COMMAND_BLOCKER_CONFIG=$TMPCONFIG_MERGE CHAIN_COMMAND_BLOCKER_SETTINGS=$TMPSETTINGS"
+
+run_test "merge_settings_allow: ask の Bash(rm *) はマージされない" \
+  '{"tool_input":{"command":"rm foo | jq ."}}' \
+  "ask" \
+  "CHAIN_COMMAND_BLOCKER_CONFIG=$TMPCONFIG_MERGE CHAIN_COMMAND_BLOCKER_SETTINGS=$TMPSETTINGS"
+
+run_test "merge_settings_allow: 中間ワイルドカードはスキップされる" \
+  '{"tool_input":{"command":"sed foo/bar baz | jq ."}}' \
+  "ask" \
+  "CHAIN_COMMAND_BLOCKER_CONFIG=$TMPCONFIG_MERGE CHAIN_COMMAND_BLOCKER_SETTINGS=$TMPSETTINGS"
+
+run_test "merge_settings_allow: Bash( 以外の prefix は無視される" \
+  '{"tool_input":{"command":"WebFetch args | jq ."}}' \
+  "ask" \
+  "CHAIN_COMMAND_BLOCKER_CONFIG=$TMPCONFIG_MERGE CHAIN_COMMAND_BLOCKER_SETTINGS=$TMPSETTINGS"
+
+run_test "merge_settings_allow: settings.json が存在しなくてもエラーにならない" \
+  '{"tool_input":{"command":"jq . a | jq . b"}}' \
+  "allow" \
+  "CHAIN_COMMAND_BLOCKER_CONFIG=$TMPCONFIG_MERGE CHAIN_COMMAND_BLOCKER_SETTINGS=/nonexistent"
+
+# デフォルト（merge_settings_allow: false）ではマージされない
+TMPCONFIG_NOMERGE=$(mktemp)
+cat > "$TMPCONFIG_NOMERGE" <<'JSON'
+{
+  "allow_list": ["jq"]
+}
+JSON
+
+run_test "merge_settings_allow: デフォルト無効ではマージされない" \
+  '{"tool_input":{"command":"gh pr view 123 | jq ."}}' \
+  "ask" \
+  "CHAIN_COMMAND_BLOCKER_CONFIG=$TMPCONFIG_NOMERGE CHAIN_COMMAND_BLOCKER_SETTINGS=$TMPSETTINGS"
+
+rm -f "$TMPCONFIG_MERGE" "$TMPCONFIG_NOMERGE" "$TMPSETTINGS"
+
 rm -f "$TMPCONFIG"
 
 echo ""

@@ -43,6 +43,31 @@
 
 設定ファイルが存在しない場合、許可リストは空となり、すべてのチェーンコマンドで確認が求められます。
 
+### `settings.json` の `permissions.allow` と連携
+
+`merge_settings_allow` を有効にすると、`~/.claude/settings.json` の `permissions.allow` にある `Bash(...)` 形式のエントリを自動的に許可リストへマージします：
+
+```json
+{
+  "allow_list": ["jq"],
+  "merge_settings_allow": true
+}
+```
+
+変換ルール：
+
+| `settings.json` の記法 | マージされる前方一致パターン |
+|-----------------------|--------------------------------|
+| `Bash(gh pr view *)`  | `gh pr view`                   |
+| `Bash(gh search:*)`   | `gh search`                    |
+| `Bash(git log)`       | `git log`                      |
+| `Bash(sed */foo/* *)` | （中間ワイルドカードはスキップ） |
+| `WebFetch(...)` 等     | （`Bash(...)` 以外は無視）      |
+
+`permissions.ask` / `permissions.deny` や、他レイヤーの settings（プロジェクト側 `.claude/settings.json` など）は対象外です。必要に応じて `chain-command-blocker.json` に個別エントリを追加してください。
+
+設定ファイルパスは環境変数 `CHAIN_COMMAND_BLOCKER_SETTINGS` で上書きできます（テスト用途）。
+
 ## 開発
 
 ### 同梱版 shs のバージョン更新
