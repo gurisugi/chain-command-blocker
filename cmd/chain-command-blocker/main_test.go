@@ -260,6 +260,29 @@ func TestRun_SettingsOverrideThreeFiles(t *testing.T) {
 	}
 }
 
+func TestRun_ParseErrorTriggersAsk(t *testing.T) {
+	dir := t.TempDir()
+	cfgPath := writeConfig(t, dir, []string{"Bash(jq *)"}, false)
+	e := env{ConfigPath: cfgPath}
+
+	// Unclosed command substitution: mvdan/sh cannot parse this.
+	out := runHook(t, "echo $(foo && bar", e)
+	if out == "" {
+		t.Fatal("expected ask when shell parse fails, got nothing")
+	}
+	var resp hookOutput
+	if err := json.Unmarshal([]byte(out), &resp); err != nil {
+		t.Fatalf("output not JSON: %v\nraw: %s", err, out)
+	}
+	if resp.HookSpecificOutput.PermissionDecision != "ask" {
+		t.Errorf("permissionDecision = %q, want ask", resp.HookSpecificOutput.PermissionDecision)
+	}
+	if !strings.Contains(resp.HookSpecificOutput.PermissionDecisionReason, "could not parse") {
+		t.Errorf("reason missing parse-error explanation: %q",
+			resp.HookSpecificOutput.PermissionDecisionReason)
+	}
+}
+
 func TestRun_DisallowedListedInReason(t *testing.T) {
 	dir := t.TempDir()
 	cfgPath := writeConfig(t, dir, []string{"Bash(jq *)"}, false)

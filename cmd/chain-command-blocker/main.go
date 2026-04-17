@@ -85,7 +85,10 @@ func run(stdin io.Reader, stdout io.Writer, e env) error {
 
 	cmds, err := shell.SplitCommands(in.ToolInput.Command)
 	if err != nil {
-		return nil // parse error: stay out of the way
+		return emitAsk(stdout, fmt.Sprintf(
+			"chain-command-blocker could not parse the command (%v); asking for confirmation as a precaution.",
+			err,
+		))
 	}
 	if len(cmds) <= 1 {
 		return nil
@@ -101,7 +104,11 @@ func run(stdin io.Reader, stdout io.Writer, e env) error {
 		return nil
 	}
 
-	reason := buildReason(cmds, disallowed)
+	return emitAsk(stdout, buildReason(cmds, disallowed))
+}
+
+// emitAsk writes a PreToolUse ask decision with the given reason.
+func emitAsk(stdout io.Writer, reason string) error {
 	out := hookOutput{
 		HookSpecificOutput: hookSpecificOutput{
 			HookEventName:            "PreToolUse",
