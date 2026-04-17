@@ -27,7 +27,30 @@ jobs:
       - name: Run tests
         run: go test ./...
 
+      - name: Debug - dump go env and committed binary buildinfo
+        run: |
+          echo "=== go version ==="
+          go version
+          echo "=== go env ==="
+          go env
+          echo "=== committed binary buildinfo (darwin_arm64) ==="
+          go version -m bin/chain-command-blocker-darwin_arm64
+          echo "=== committed binary buildinfo (linux_amd64) ==="
+          go version -m bin/chain-command-blocker-linux_amd64
+
       - name: Verify committed binaries are reproducible
         run: |
           make build
+          echo "=== rebuilt binary buildinfo (darwin_arm64) ==="
+          go version -m bin/chain-command-blocker-darwin_arm64
+          echo "=== rebuilt binary buildinfo (linux_amd64) ==="
+          go version -m bin/chain-command-blocker-linux_amd64
+          echo "=== diff check ==="
+          git diff --exit-code bin/ || true
+          echo "=== binary byte diff sample (first 64 bytes each) ==="
+          for f in bin/chain-command-blocker-*; do
+            echo "--- $f ---"
+            echo "committed: $(git show HEAD:$f | xxd -l 64)"
+            echo "rebuilt:   $(xxd -l 64 $f)"
+          done
           git diff --exit-code bin/
