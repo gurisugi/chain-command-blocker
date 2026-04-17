@@ -66,10 +66,17 @@ without having to maintain two separate allow lists. Note that
 
 ## Development
 
+Source code lives in
+[gurisugi/chain-command-blocker-src](https://github.com/gurisugi/chain-command-blocker-src).
+This repository only holds the plugin manifest, hook launcher, and
+prebuilt binaries pulled from the source repo's GitHub Releases.
+
+To refresh the binaries to a specific source tag:
+
 ```bash
-make build   # Build binaries for all 4 platforms into bin/
-make test    # go test ./...
-make clean
+./scripts/sync-from-src.sh v1.0.0
+git add bin/
+git commit -m 'Sync binaries from chain-command-blocker-src@v1.0.0'
 ```
 
 ### Why binaries are committed to the repo
