@@ -77,10 +77,10 @@ make clean
 Claude Code plugins are distributed as Git repositories, so shipping
 prebuilt binaries means users don't need a Go toolchain installed.
 
-## v1 limitations
+## Limitations
 
 The following aspects of Claude Code's `permissions.allow` semantics are
-**not** yet implemented (planned for follow-up releases):
+not covered:
 
 - wrapper stripping (e.g. `timeout npm test` matching `Bash(npm test *)`)
 - middle wildcards (`Bash(git * main)`)
