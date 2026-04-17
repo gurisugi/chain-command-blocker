@@ -86,5 +86,4 @@ The following aspects of Claude Code's `permissions.allow` semantics are
 - middle wildcards (`Bash(git * main)`)
 - implicit read-only commands (`ls`, `cat`, etc. passing without an
   explicit allow entry)
-- no-boundary wildcards (`Bash(ls*)` matching `lsof`)
 - `deny` / `ask` rule handling
