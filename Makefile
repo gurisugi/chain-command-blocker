@@ -17,14 +17,16 @@ FORCE:
 test:
 	@go test ./...
 
+TOOLS_MODFILE := tools/go.mod
+
 lint:
-	@go tool golangci-lint run ./...
+	@go tool -modfile=$(TOOLS_MODFILE) golangci-lint run ./...
 
 pinact:
-	@go tool pinact run
+	@go tool -modfile=$(TOOLS_MODFILE) pinact run
 
 pinact-verify:
-	@go tool pinact run --check --verify
+	@go tool -modfile=$(TOOLS_MODFILE) pinact run --check --verify
 
 clean:
 	rm -f $(BINARIES)
