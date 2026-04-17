@@ -1,7 +1,7 @@
 PLATFORMS := darwin_arm64 darwin_amd64 linux_amd64 linux_arm64
 BINARIES := $(addprefix bin/chain-command-blocker-,$(PLATFORMS))
 
-.PHONY: all build test clean FORCE
+.PHONY: all build test lint pinact pinact-verify clean FORCE
 
 all: build
 
@@ -16,6 +16,15 @@ FORCE:
 
 test:
 	@go test ./...
+
+lint:
+	@go tool golangci-lint run ./...
+
+pinact:
+	@go tool pinact run
+
+pinact-verify:
+	@go tool pinact run --check --verify
 
 clean:
 	rm -f $(BINARIES)
