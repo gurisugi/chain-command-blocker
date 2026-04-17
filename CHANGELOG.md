@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.2.1](https://github.com/gurisugi/chain-command-blocker/compare/v0.2.0...v0.2.1) - 2026-04-17
+- Add LICENSE by @gurisugi in https://github.com/gurisugi/chain-command-blocker/pull/17
+
 ## [v0.0.2](https://github.com/gurisugi/chain-command-blocker/compare/v0.1.0...v0.0.2) - 2026-04-17
 - build(deps): Bump Songmu/tagpr from 1.18.1 to 1.18.2 by @dependabot[bot] in https://github.com/gurisugi/chain-command-blocker/pull/8
 - feat!: Rewrite the hook in Go and drop the shs/jq dependency by @gurisugi in https://github.com/gurisugi/chain-command-blocker/pull/10
