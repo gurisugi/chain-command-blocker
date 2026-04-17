@@ -10,7 +10,7 @@ build: $(BINARIES)
 bin/chain-command-blocker-%: FORCE
 	@echo "Building $@..."
 	@GOOS=$(word 1,$(subst _, ,$*)) GOARCH=$(word 2,$(subst _, ,$*)) \
-		go build -trimpath -ldflags="-s -w" -o $@ ./cmd/chain-command-blocker
+		go build -trimpath -buildvcs=false -ldflags="-s -w" -o $@ ./cmd/chain-command-blocker
 
 FORCE:
 
