@@ -15,9 +15,6 @@ func TestLoad(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Load(missing) error: %v", err)
 		}
-		if cfg == nil {
-			t.Fatal("Load(missing) returned nil config")
-		}
 		if len(cfg.AllowList) != 0 || cfg.MergeSettingsAllow {
 			t.Errorf("Load(missing) = %+v, want zero value", cfg)
 		}

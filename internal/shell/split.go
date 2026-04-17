@@ -130,7 +130,7 @@ func printRedacted(node syntax.Node) string {
 		return true
 	})
 
-	printer.Print(&sb, node)
+	_ = printer.Print(&sb, node)
 
 	// restore Stmts
 	for _, s := range saved {
