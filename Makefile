@@ -1,20 +1,21 @@
-SHS_VERSION := $(shell cat bin/SHS_VERSION)
 PLATFORMS := darwin_arm64 darwin_amd64 linux_amd64 linux_arm64
-BINARIES := $(addprefix bin/shs-,$(PLATFORMS))
+BINARIES := $(addprefix bin/chain-command-blocker-,$(PLATFORMS))
 
-.PHONY: all clean download-shs
+.PHONY: all build test clean FORCE
 
-all: download-shs
+all: build
 
-download-shs: $(BINARIES)
+build: $(BINARIES)
 
-bin/shs-%: bin/SHS_VERSION
-	@echo "Downloading shs $(SHS_VERSION) for $*..."
-	@gh release download $(SHS_VERSION) -R gurisugi/shs -p "shs_$*.tar.gz" -D /tmp --clobber
-	@tar -xzf /tmp/shs_$*.tar.gz -C /tmp
-	@mv /tmp/shs $@
-	@chmod +x $@
-	@rm -f /tmp/shs_$*.tar.gz
+bin/chain-command-blocker-%: FORCE
+	@echo "Building $@..."
+	@GOOS=$(word 1,$(subst _, ,$*)) GOARCH=$(word 2,$(subst _, ,$*)) \
+		CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags="-s -w" -o $@ ./cmd/chain-command-blocker
+
+FORCE:
+
+test:
+	@go test ./...
 
 clean:
 	rm -f $(BINARIES)
