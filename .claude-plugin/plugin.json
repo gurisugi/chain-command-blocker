@@ -1,7 +1,7 @@
 {
   "name": "chain-command-blocker",
   "version": "0.0.2",
-  "description": "チェーンされたBashコマンドのうち、許可リスト外のコマンドが含まれる場合にユーザー確認を求めるPreToolUseフック",
+  "description": "A PreToolUse hook that asks the user for confirmation when a chained Bash command contains a sub-command outside the allow list",
   "author": {
     "name": "gurisugi"
   },
