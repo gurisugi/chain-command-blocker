@@ -1,6 +1,6 @@
 {
   "name": "chain-command-blocker",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A PreToolUse hook that asks the user for confirmation when a chained Bash command contains a sub-command outside the allow list",
   "author": {
     "name": "gurisugi"
